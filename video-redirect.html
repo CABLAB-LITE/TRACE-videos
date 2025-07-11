@@ -5,6 +5,7 @@
 </head>
 <body style="font-family: sans-serif; text-align: center; padding: 40px;">
   <h2>Please watch the video below:</h2>
+
   <iframe width="560" height="315"
           src="https://www.youtube.com/embed/jB4vK3So0qA"
           frameborder="0" allowfullscreen>
@@ -12,10 +13,19 @@
 
   <p>Once you’ve finished, click below to return to the survey.</p>
 
-<button onclick="window.location.href='https://cphapps.temple.edu/surveys/?s=YR8DY3XXM3DHLX4J?video_complete=1&__new=1'" 
-        style="font-size: 18px; padding: 10px 20px;">
-  Return to Survey
-</button>
+  <button id="returnBtn" style="font-size: 18px; padding: 10px 20px;">
+    Return to Survey
+  </button>
 
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const record = params.get("record");
+    const surveyLink = params.get("s");
+    const returnUrl = `https://cphapps.temple.edu/redcap/surveys/?s=${surveyLink}&__record=${record}&video_complete=1`;
+
+    document.getElementById("returnBtn").onclick = function () {
+      window.location.href = returnUrl;
+    };
+  </script>
 </body>
 </html>
