@@ -1,30 +1,80 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Watch the Moral Judgement Video</title>
+  <title>Moral Judgment Survey</title>
 </head>
-<body style="font-family: sans-serif; text-align: center; padding: 40px;">
+<body style="font-family: sans-serif; max-width: 700px; margin: auto; padding: 40px;">
   <h2>Please watch the video below:</h2>
-
   <iframe width="560" height="315"
           src="https://www.youtube.com/embed/jB4vK3So0qA"
           frameborder="0" allowfullscreen>
   </iframe>
 
-  <p>Once you’ve finished, click below to return to the survey.</p>
+  <hr>
 
-  <button id="returnBtn" style="font-size: 18px; padding: 10px 20px;">
-    Return to Survey
-  </button>
+  <p><strong>Please rate your agreement with each statement on a 7-point scale (1 = Strongly Disagree, 7 = Strongly Agree):</strong></p>
+
+  <form id="surveyForm">
+    <label for="moral">1. The characters' decision to steal in this situation was morally acceptable.</label><br>
+    <input type="number" id="moral" name="judge_moral_1" min="1" max="7" required><br><br>
+
+    <label for="good">2. The people committing the theft seem like fundamentally good individuals.</label><br>
+    <input type="number" id="good" name="judge_good_person_1" min="1" max="7" required><br><br>
+
+    <label for="responsible">3. The individuals should be held fully responsible for their actions.</label><br>
+    <input type="number" id="responsible" name="judge_responsible_1" min="1" max="7" required><br><br>
+
+    <input type="submit" value="Submit">
+  </form>
+
+  <p id="statusMessage" style="font-weight: bold;"></p>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const record = params.get("record");
-    const surveyLink = params.get("s");
-    const returnUrl = `https://cphapps.temple.edu/redcap/surveys/?s=${surveyLink}&__record=${record}&video_complete=1`;
+    const form = document.getElementById('surveyForm');
+    const statusMessage = document.getElementById('statusMessage');
 
-    document.getElementById("returnBtn").onclick = function () {
-      window.location.href = returnUrl;
+    form.onsubmit = async function(event) {
+      event.preventDefault();
+
+      const recordId = new URLSearchParams(window.location.search).get("record");
+      if (!recordId) {
+        statusMessage.textContent = "Error: Missing record ID.";
+        return;
+      }
+
+      const apiUrl = 'https://cphapps.temple.edu/redcap/api/';
+      const apiToken = 'PUT API TOKEN HERE WHEN MATT APPROVES IT'; 
+
+      const payload = {
+        token: apiToken,
+        content: 'record',
+        format: 'json',
+        type: 'flat',
+        data: JSON.stringify([{
+          record: recordId,
+          judge_moral_1: document.getElementById('moral').value,
+          judge_good_person_1: document.getElementById('good').value,
+          judge_responsible_1: document.getElementById('responsible').value
+        }])
+      };
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(payload)
+        });
+
+        const text = await response.text();
+        if (response.ok) {
+          statusMessage.textContent = "Thank you! Your responses have been submitted.";
+          form.reset();
+        } else {
+          statusMessage.textContent = "Submission failed: " + text;
+        }
+      } catch (err) {
+        statusMessage.textContent = "An error occurred: " + err;
+      }
     };
   </script>
 </body>
